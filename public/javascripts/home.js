@@ -29,12 +29,16 @@ function initTerminal(token) {
     requestAnimationFrame(() => {
         fitAddon.fit();
 
-        const ws = new WebSocket(`wss://${location.host}?token=${token}`);
+        // Grab the dynamic path (e.g., "/terminal/", "/browser/", or just "/")
+        const currentPath = location.pathname.endsWith('/') ? location.pathname : location.pathname + '/';
+
+        // Inject it smoothly right before the query parameter
+        const ws = new WebSocket(`wss://${location.host}${currentPath}?token=${token}`);
 
         ws.onopen = () => {
             statusEl.textContent = "● Connected";
             statusEl.style.color = "#a6e3a1";
-            
+
             // Sync PTY size immediately on connect
             ws.send(JSON.stringify({ type: "resize", cols: term.cols, rows: term.rows }));
         };
@@ -77,7 +81,7 @@ async function login() {
     loginError.textContent = "";
 
     try {
-        const res = await fetch("/auth/login", {
+        const res = await fetch("auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ password }),
